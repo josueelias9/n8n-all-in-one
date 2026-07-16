@@ -1,0 +1,194 @@
+{
+  "name": "cibertec class",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        240
+      ],
+      "id": "d1cd652e-b02f-49d6-9472-73873cca65f8",
+      "name": "When chat message received",
+      "webhookId": "d4cca8ac-e737-48d8-b134-e2fb1903db56"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        240
+      ],
+      "id": "6860dd58-4f0f-4957-8f3a-cfefbd929865",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        352,
+        448
+      ],
+      "id": "b6bac593-5680-410b-9cb6-ad29e309bb93",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        496,
+        448
+      ],
+      "id": "1e3bd912-63b1-43d7-a6dd-eb559e933e9e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        784,
+        448
+      ],
+      "id": "ef54113b-9560-4b35-8e39-9d8860c1f919",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "199RUhUJ6JssEmU2355D_swVUU_moC60z3vW3aLYpOU0",
+          "mode": "list",
+          "cachedResultName": "ejercicio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/199RUhUJ6JssEmU2355D_swVUU_moC60z3vW3aLYpOU0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/199RUhUJ6JssEmU2355D_swVUU_moC60z3vW3aLYpOU0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        448
+      ],
+      "id": "378cdf40-f6ce-46b0-946c-9cd82bdd2905",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kj306y1Z5y6pfsNR",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-07-16T03:03:34.892+00:00",
+  "updatedAt": "2026-07-16T20:02:19.083+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "d916a32e-29fc-4034-861f-a2a9f297afc8",
+  "triggerCount": 0,
+  "id": "ZVKFameEAOq6WZI8",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 32,
+  "description": null,
+  "activeVersionId": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null
+}

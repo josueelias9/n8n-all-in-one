@@ -1,11 +1,6 @@
 {
-  "id": "a31fIa8ZmGBq07CK",
-  "meta": {
-    "instanceId": "2a26454b0172ffcb8d70ba77c235b1209f92cd71bf06c79ba609c7173b416d68",
-    "templateCredsSetupCompleted": true
-  },
   "name": "Reasoning Expert with Graph RAG Knowledge Ontology",
-  "tags": [],
+  "active": false,
   "nodes": [
     {
       "id": "aa3aae5b-5652-4bd8-a1bf-986eb9765ab3",
@@ -162,12 +157,6 @@
       "typeVersion": 1
     }
   ],
-  "active": false,
-  "pinData": {},
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "versionId": "02353b90-13a1-4624-bc39-391a0dd4a1b0",
   "connections": {
     "Simple Memory": {
       "ai_memory": [
@@ -218,5 +207,26 @@
         ]
       ]
     }
-  }
+  },
+  "createdAt": "2026-07-16T02:55:20.264+00:00",
+  "updatedAt": "2026-07-16T03:14:13.832+00:00",
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "ba8c0b4e-eb44-46dc-8936-b353c39beb91",
+  "triggerCount": 0,
+  "id": "a31fIa8ZmGBq07CK",
+  "meta": {
+    "instanceId": "2a26454b0172ffcb8d70ba77c235b1209f92cd71bf06c79ba609c7173b416d68",
+    "templateCredsSetupCompleted": true
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 1,
+  "description": null,
+  "activeVersionId": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null
 }

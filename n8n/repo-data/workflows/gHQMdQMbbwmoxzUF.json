@@ -832,7 +832,7 @@
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "536455c4-f7d0-4b60-ad90-e49cec4aabe5",
+  "versionId": "5cdfcbb4-e9ba-4f99-9e92-d1a19a3b2225",
   "triggerCount": 0,
   "id": "gHQMdQMbbwmoxzUF",
   "meta": {
@@ -840,5 +840,10 @@
     "templateCredsSetupCompleted": true
   },
   "parentFolderId": null,
-  "isArchived": false
+  "isArchived": false,
+  "versionCounter": 1,
+  "description": null,
+  "activeVersionId": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null
 }

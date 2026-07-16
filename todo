@@ -1,0 +1,18 @@
+
+
+
+[ ] do a complete query of the credentials and workflow tables 
+because we are only mapping new entries, but what about those 
+deleted entries?
+
+    - delete all files
+    - query all credentials and workflow tables
+    - save all
+
+[ ] since this is a simple process, put it on a script and 
+execute a init-container that accomplish this task
+
+[ ] remove the Streamlit logic
+
+[ ] keep naming the files with the id. This will help us control
+duplate files

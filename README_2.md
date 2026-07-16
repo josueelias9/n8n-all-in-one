@@ -1,7 +1,5 @@
 # - How to use it
 
-## -- save workflows 
-
 start the project with compose
 
 ```sh
@@ -10,25 +8,27 @@ docker compose --profile gpu-nvidia up --build
 
 (optional) use a template to start working
 
-<img src="README images/readme-image-1.png" alt="alt text" width="600"/>
+![](README-images/readme-image-1.png)
 
-when you are done working, save your project
 
-<img src="README images/readme-image-2.png" alt="alt text" width="600"/>
+- Go to `http://localhost:5678`. When you are done working, save your project.
 
-Just saving the workflow is ok, but it will only live on your comptuer. To push the workflow to github, go to `localhost:5801` and search for your workflow. Save it. Then you use your git tool to have control over the changes you have made.
 
-<img src="README images/readme-image.png" alt="alt text" width="600"/>
+![](README-images/readme-image-2.png)
 
-delete everything once you are done
+- Just saving the workflow is ok, but it will only live on `n8n container` memory. To push the workflow and credentials to github, execute the following command. 
+
+```sh
+docker compose up extract-workflow --build
+```
+
+
+- Then you can use your git tool to have control over the changes you have made. Whe you are done, delete everything:
 
 ```sh
 docker compose --profile gpu-nvidia down -v
 ```
 
-## -- container approach
-
-TODO
 
 # - Keep in sync
 

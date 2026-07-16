@@ -158,8 +158,13 @@ services:
     container_name: extract-workflow
     networks: ['demo']
     env_file: .env
-    ports:
-      - 8501:8501
+    volumes:
+      - .:/workspace
+    command: ["python", "sync_repo_data.py"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 
   # neo4j:
   #   image: neo4j:latest

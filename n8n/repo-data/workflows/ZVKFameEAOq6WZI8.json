@@ -1,25 +1,13 @@
 {
-  "name": "cibertec class",
+  "name": "Envia Reporte de Pedidos",
   "active": false,
   "nodes": [
     {
       "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.4,
-      "position": [
-        128,
-        240
-      ],
-      "id": "d1cd652e-b02f-49d6-9472-73873cca65f8",
-      "name": "When chat message received",
-      "webhookId": "d4cca8ac-e737-48d8-b134-e2fb1903db56"
-    },
-    {
-      "parameters": {
+        "promptType": "define",
+        "text": "=",
         "options": {
-          "systemMessage": "You are a helpful assistant"
+          "systemMessage": "Eres un especialista en leer archivos de Google Sheet y crear correos electronicos en formato HTML.\n\nla respuesta tiene que ser en formato HTML.\n\nNo uses mensajes introductorios como \"Aqui esta el correo\" o \"Claro, esta es la respuesta\". Devuelve el resultado directamente.\n\n- Usa la tool de Google Sheet para leer informacion del csv\n- prepara un resumen de lo leido\n- devuelve el correo electronico"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -52,28 +40,6 @@
       }
     },
     {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.4,
-      "position": [
-        496,
-        448
-      ],
-      "id": "1e3bd912-63b1-43d7-a6dd-eb559e933e9e",
-      "name": "Simple Memory"
-    },
-    {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
-      "typeVersion": 1,
-      "position": [
-        784,
-        448
-      ],
-      "id": "ef54113b-9560-4b35-8e39-9d8860c1f919",
-      "name": "Wikipedia"
-    },
-    {
       "parameters": {
         "documentId": {
           "__rl": true,
@@ -94,7 +60,7 @@
       "type": "n8n-nodes-base.googleSheetsTool",
       "typeVersion": 4.7,
       "position": [
-        640,
+        656,
         448
       ],
       "id": "378cdf40-f6ce-46b0-946c-9cd82bdd2905",
@@ -105,20 +71,58 @@
           "name": "Google Sheets account"
         }
       }
+    },
+    {
+      "parameters": {
+        "sendTo": "josueeliashuaman@gmail.com",
+        "subject": "Reporte de Pedidos",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        240
+      ],
+      "id": "82161226-606b-4235-afa7-420b0b9e9509",
+      "name": "Send a message",
+      "webhookId": "e2041cf9-6fbc-46ec-a008-0c4f67f057f2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HEfF3TWP0ys0dzGd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Automatizar Correos Electronicos\nEmpresa necesita automatizar el envio de correos electronicos con el reporte de pedidos a su supervisor todos los dias con un resumen de los datos actaluzados en un csv.",
+        "height": 176,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        224,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "5af158b4-2b5b-4e2f-98f8-b9f4834c0c83",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        112,
+        240
+      ],
+      "id": "6ec7a163-a355-4d9a-9f9a-6ede64eea8be",
+      "name": "When clicking ‘Execute workflow’"
     }
   ],
   "connections": {
-    "When chat message received": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model": {
       "ai_languageModel": [
         [
@@ -130,31 +134,15 @@
         ]
       ]
     },
-    "Simple Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wikipedia": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "AI Agent": {
       "main": [
-        []
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Get row(s) in sheet in Google Sheets": {
@@ -167,10 +155,21 @@
           }
         ]
       ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "createdAt": "2026-07-16T03:03:34.892+00:00",
-  "updatedAt": "2026-07-16T20:02:19.083+00:00",
+  "updatedAt": "2026-07-18T17:10:34.208+00:00",
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
@@ -178,7 +177,7 @@
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "d916a32e-29fc-4034-861f-a2a9f297afc8",
+  "versionId": "77d5009e-4dfb-4598-b63c-b8422f5f6071",
   "triggerCount": 0,
   "id": "ZVKFameEAOq6WZI8",
   "meta": {
@@ -186,7 +185,7 @@
   },
   "parentFolderId": null,
   "isArchived": false,
-  "versionCounter": 32,
+  "versionCounter": 134,
   "description": null,
   "activeVersionId": null,
   "nodeGroups": [],

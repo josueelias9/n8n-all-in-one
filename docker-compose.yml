@@ -152,11 +152,15 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL
       - PGADMIN_DEFAULT_PASSWORD
+    profiles:
+      - profileName
 
   extract-workflow:
     build: ./extract-workflow
     container_name: extract-workflow
     networks: ['demo']
+    profiles:
+      - profileName
     env_file: .env
     volumes:
       - .:/workspace

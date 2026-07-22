@@ -1,12 +1,24 @@
-# - How to use it
+# - N8N - All in One
 
-start the project with compose
+## -- pre-requisites
+- ngrok
+- docker compose
+
+## -- How to use it
+
+- start the project with compose
 
 ```sh
 docker compose --profile gpu-nvidia up --build
 ```
 
-(optional) use a template to start working
+- create a reverse proxy using ngrok. This is necesasary when using Telegram because Telegram needs to know how to reach our local n8n service.
+
+```sh
+ngrok http 5678
+```
+
+- (optional) use a template to start working
 
 ![](README-images/readme-image-1.png)
 
@@ -16,7 +28,7 @@ docker compose --profile gpu-nvidia up --build
 
 ![](README-images/readme-image-2.png)
 
-- Just saving the workflow is ok, but it will only live on `n8n container` memory. To push the workflow and credentials to github, execute the following command. 
+- Just saving the workflow is ok, but it will only live on `n8n container` memory. To push the workflow and credentials to github, execute the following command. It will take the id of the workflow or the credential and use it as the name of the json file.
 
 ```sh
 docker compose up extract-workflow --build
@@ -38,10 +50,14 @@ docker compose --profile gpu-nvidia down -v
 - checkout to upstream/main
 - test
 
-## -- sync
 
-TODO
+## -- protect the env variables
 
-## -- misc
+encrypt
+```sh
+sops encrypt --age PUBLIC_KEY .env > enc.env
+```
 
-- it takes the id of the json, the file name is just a reference
+decrypt
+```sh
+SOPS_AGE_KEY_FILE=../key.txt sops decrypt enc.env > .env

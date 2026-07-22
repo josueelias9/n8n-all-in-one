@@ -50,6 +50,7 @@ x-init-ollama: &init-ollama
 
 services:
   postgres:
+    container_name: postgres-container
     image: postgres:16-alpine
     hostname: postgres
     networks: ['demo']
@@ -69,7 +70,7 @@ services:
   n8n-import:
     <<: *service-n8n
     hostname: n8n-import
-    container_name: n8n-import
+    container_name: n8n-import-container
     entrypoint: /bin/sh
     command:
     - "-c"
@@ -90,7 +91,7 @@ services:
   n8n:
     <<: *service-n8n
     hostname: n8n
-    container_name: n8n
+    container_name: n8n-container
     restart: unless-stopped
     ports:
       - 5678:5678
@@ -108,7 +109,7 @@ services:
   qdrant:
     image: qdrant/qdrant
     hostname: qdrant
-    container_name: qdrant
+    container_name: qdrant-container
     networks: ['demo']
     restart: unless-stopped
     ports:
@@ -119,6 +120,7 @@ services:
 
 
   ollama-gpu:
+    container_name: ollama-gpu-container
     profiles: ["gpu-nvidia"]
     <<: *service-ollama
     deploy:
@@ -133,6 +135,7 @@ services:
 
 
   ollama-pull-llama-gpu:
+    container_name: ollama-pull-llama-gpu-container
     profiles: ["gpu-nvidia"]
     <<: *init-ollama
     depends_on:
@@ -146,7 +149,7 @@ services:
     # restart: always
     ports:
       - 80:80
-    container_name: pgadmin4_container
+    container_name: pgadmin4-container
     volumes:
       # https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
       - pgadmin_storage:/var/lib/pgadmin
@@ -158,7 +161,7 @@ services:
 
   extract-workflow:
     build: ./extract-workflow
-    container_name: extract-workflow
+    container_name: extract-workflow-container
     networks: ['demo']
     profiles:
       - profileName

@@ -1,4 +1,4 @@
-# - N8N - All in One
+# - n8n - All in One
 
 This is a powered version of the `n8n-starter-kit` that includes:
 - `Graphql`
@@ -34,7 +34,7 @@ ngrok http 5678
 
 ![](docs/readme-image-2.png)
 
-- Just saving the workflow is ok, but it will only live on `n8n container` memory. To push the workflow and credentials to github, execute the following command. It will take the id of the workflow or the credential and use it as the name of the json file.
+- Just saving the workflow is ok, but it will only live on the `postgres` local service. To push the workflow and credentials to our working space, execute the following command. It will take the id of the workflow or the credential and use it as the name of the json file.
 
 
 ```sh

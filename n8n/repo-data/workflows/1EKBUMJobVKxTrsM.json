@@ -1,0 +1,382 @@
+{
+  "name": "n8n - Scrape recent news about a company before a call",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "apiKey",
+              "stringValue": "32aa914c947342169c4998b6701a77e0"
+            },
+            {
+              "name": "newsAge",
+              "type": "numberValue",
+              "numberValue": "10"
+            },
+            {
+              "name": "maxArticles",
+              "stringValue": "20"
+            },
+            {
+              "name": "emails",
+              "stringValue": "josueeliashuaman@gmail.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1280c0d-1969-402a-912e-8e7c7586d8f8",
+      "name": "Setup",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        224,
+        368
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "companyName",
+              "stringValue": "={{ $json.summary.toLowerCase().replace('meeting with', '').replace('call with', '').trim() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7bde09bf-f55f-4dda-a6fe-180c222422b0",
+      "name": "Extract company name",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        912,
+        160
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "content": "### Latest company news before a call\n\nThis workflow will send you a list of latest news about a company for every meeting in your calendar each day, keeping you up to date with your leads and meeting partners.\n",
+        "height": 192,
+        "width": 436,
+        "color": 4
+      },
+      "id": "67dbe865-9a64-4269-bd37-2148d0d3a0ba",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "00be0a8e-8e76-4c46-8a7e-2763fb9f213c",
+      "name": "Every morning @ 7",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        0,
+        368
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "bcfb06b1-d365-43a8-9802-869529baca98",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              },
+              "leftValue": "={{ $json.summary.toLowerCase() }}",
+              "rightValue": "call with"
+            },
+            {
+              "id": "4ea43ccf-d586-4985-87db-fc1e9f734351",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              },
+              "leftValue": "={{ $json.summary.toLowerCase() }}",
+              "rightValue": "meeting with"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1ff9467d-75a9-44d8-b1b8-0d8638ffc238",
+      "name": "Filter meetings",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        640,
+        368
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=https://newsapi.org/v2/everything?apiKey={{ $('Setup').first().json.apiKey }}&q={{ $json.companyName }}&from={{ DateTime.now().minus({ days: $('Setup').first().json.newsAge }).toFormat('yyyy-MM-dd') }}&sortBy=publishedAt&language=en&pageSize={{ $('Setup').first().json.maxArticles }}&searchIn=title",
+        "options": {}
+      },
+      "id": "317b6824-f8ce-41d2-9a8f-75f5a414f40f",
+      "name": "Get latest news",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1104,
+        160
+      ],
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "let html = `<table style=\"width: 100%\">`;\nhtml += '</table>';\n\nfor(article of $input.item.json.articles) {\n  console.log(article)\n  html += `\n    <tr>\n      <td style=\"display: flex; background-color: #f2f4f8; font-family: sans-serif; padding: 0.3em 0.5em\">\n        <div style=\"padding: 1em\">\n          <a style=\"display: block; margin-bottom: 10px; font-size: 1.2em\" href=\"${article.url}\">${article.title}</a>\n          <i>\n            ${article.description ? article.description : article.content}\n          </i>\n          <div style=\"margin-top: 1em\">\n            ${ article.source?.name ? '<b>Source:</b> ' + article.source?.name : '' }\n          </div>\n        </div>\n      </td>\n    </tr>\n  `\n}\nreturn { \"html\": html };"
+      },
+      "id": "0f2cd119-a0e9-4522-83fd-98f3cc802122",
+      "name": "Format for email",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1312,
+        160
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Setup').first().json.emails }}",
+        "subject": "=Latest news for '{{ $('Extract company name').item.json.summary }}'",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "9d8d9d33-5c88-4c49-9fb9-7afd8e0047c9",
+      "name": "Send news",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1504,
+        160
+      ],
+      "typeVersion": 2.1,
+      "webhookId": "b4f4ed5f-cee6-492d-88ef-b3ce984cffab",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HEfF3TWP0ys0dzGd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n### Configure your workflow here\n1. `apiKey` - Your API key for [News API](https://newsapi.org)\n2. `newsAge` - How old should news be, in days\n3. `maxArticles` - Number of articles that will be sent, max 100\n4. `emails`- List of email addresses that should receive the news, separated by commas",
+        "height": 511.499984507795
+      },
+      "id": "147c6ae0-10fb-41fd-a00b-dd6ce5a1db2e",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\nThis will get all meetings that start with *Meeting with* or *Call with* but feel free to update the filter to suit your needs.",
+        "height": 275.2500697149263,
+        "width": 231.52514020446353
+      },
+      "id": "918a089c-d240-4f72-a6d7-19bf0d8ddbfa",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        624,
+        352
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "ea6b4787-df92-4b88-b24b-40166631be60",
+      "name": "No meetings today",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1504,
+        384
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "josueeliashuaman@gmail.com",
+          "mode": "list",
+          "cachedResultName": "general"
+        },
+        "options": {
+          "timeMin": "={{ $today }}",
+          "timeMax": "={{ $today.plus({ days: 1 }) }}",
+          "singleEvents": true
+        }
+      },
+      "id": "3dc8be2b-c0a1-4c2f-8418-7f45e13afc98",
+      "name": "Get meetings for today",
+      "type": "n8n-nodes-base.googleCalendar",
+      "position": [
+        464,
+        368
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "MaJK8dojZGbAgaFT",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "https://n8n.io/workflows/2110-scrape-recent-news-about-a-company-before-a-call/",
+        "height": 80,
+        "width": 720
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "687fcbce-9713-4aca-915d-7ccb3f945369",
+      "name": "Sticky Note3"
+    }
+  ],
+  "connections": {
+    "Setup": {
+      "main": [
+        [
+          {
+            "node": "Get meetings for today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter meetings": {
+      "main": [
+        [
+          {
+            "node": "Extract company name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No meetings today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get latest news": {
+      "main": [
+        [
+          {
+            "node": "Format for email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format for email": {
+      "main": [
+        [
+          {
+            "node": "Send news",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every morning @ 7": {
+      "main": [
+        [
+          {
+            "node": "Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract company name": {
+      "main": [
+        [
+          {
+            "node": "Get latest news",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get meetings for today": {
+      "main": [
+        [
+          {
+            "node": "Filter meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-07-22T05:24:14.712+00:00",
+  "updatedAt": "2026-07-22T12:57:22.334+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "fd8e25af-5cbe-44fa-9c7a-a704cde455e9",
+  "triggerCount": 0,
+  "id": "1EKBUMJobVKxTrsM",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 13,
+  "description": null,
+  "activeVersionId": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null
+}

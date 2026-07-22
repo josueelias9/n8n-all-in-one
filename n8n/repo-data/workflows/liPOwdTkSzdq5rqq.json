@@ -1,0 +1,242 @@
+{
+  "name": "p - soporte TI",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c74587f1-5fbe-41c7-bfec-dbf973638a77",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "chat"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "53fad26b-6b74-4d7c-9f65-c7588316baa0",
+      "name": "Get a chat",
+      "webhookId": "776d253b-2b20-4d3f-ac90-cf6c600d3ff5",
+      "credentials": {
+        "telegramApi": {
+          "id": "MZ5Qk36n9phVdYuv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        96,
+        464
+      ],
+      "id": "0500a6d5-2402-402f-a275-9a5c61e25195",
+      "name": "Telegram Trigger",
+      "webhookId": "e566520b-d88f-4b4c-adb8-ea18e3b6fe38",
+      "credentials": {
+        "telegramApi": {
+          "id": "MZ5Qk36n9phVdYuv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un asistente de soporte TI.\n\nUsa la tool de Google Sheet para revisar el estado del ticket. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        224
+      ],
+      "id": "a7b64ddc-bdcb-440f-81bc-b2c4a91b99e4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        464,
+        480
+      ],
+      "id": "c60fa271-df7d-4ae0-bc80-00c8fef6d9f2",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        656,
+        480
+      ],
+      "id": "2761257b-269e-4109-b1e3-e64bfe1df435",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA",
+          "mode": "list",
+          "cachedResultName": "soporteTI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        848,
+        480
+      ],
+      "id": "837d5927-5674-4f22-8eb1-838ad541fa92",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kj306y1Z5y6pfsNR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        240
+      ],
+      "id": "995a86b7-df05-43cf-a896-fdd8dc47c6c6",
+      "name": "When chat message received",
+      "webhookId": "16e980bf-7b03-4513-a0d6-385eaf5c712b"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get a chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a chat": {
+      "main": [
+        []
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        []
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-07-22T13:06:30.756+00:00",
+  "updatedAt": "2026-07-22T14:58:31.971+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "c41a2401-7c22-468b-ad8c-ef9b0f9354ae",
+  "triggerCount": 0,
+  "id": "liPOwdTkSzdq5rqq",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 31,
+  "description": null,
+  "activeVersionId": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null
+}

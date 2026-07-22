@@ -1,0 +1,1343 @@
+{
+  "name": "n8n - Turn Telegram voice messages into Gmail emails and Google Calendar events with Whisper and Ollama",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "id": "5e6161a5-35f9-4d28-afb7-719fb41bbbaa",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        688,
+        752
+      ],
+      "webhookId": "52428337-94ca-42af-9058-db114088a549",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "id": "85fc9539-a64c-4398-b222-4e4dec38aa54",
+      "name": "Get a file",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        912,
+        752
+      ],
+      "webhookId": "325dbc5c-7dff-4f21-8a35-7719da5291cc",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://whisper-api:9000/asr",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "task",
+              "value": "transcribe"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "output",
+              "value": "json"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "audio_file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0bdec1e7-55b4-4451-a015-30c6b7fb014b",
+      "name": "Wisper API",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1200,
+        752
+      ],
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an Email Automation Assistant.\n\nConvert user instructions into a structured email.\n\nExtract:\n- recipient (email or role like HR/manager/client)\n- subject\n- professional email body\n\nRules:\n- Always be formal and professional\n- If recipient email is missing, assume role-based (HR, Manager, Support)\n- Do NOT send email, only prepare it\n- Keep body concise and clear\n\nInput:\n{{ $('Wisper API').item.json.data }}\n\nOutput ONLY JSON:\n{\n  \"to\": \"\",\n  \"subject\": \"\",\n  \"body\": \"\"\n}\nReturn ONLY valid JSON.\nNo markdown.\nNo explanation.\nNo comments.\nNo extra text.",
+        "options": {}
+      },
+      "id": "b2690fc5-2bb8-4628-a46c-6564e9f3ee48",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1808,
+        240
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "model": "phi3:mini",
+        "options": {}
+      },
+      "id": "1f2b9a32-8239-4a68-baa8-0b138fc864a4",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "position": [
+        1808,
+        448
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.data }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "SendEmail",
+              "description": "if user wants to send an email"
+            },
+            {
+              "category": "BookAnEvent",
+              "description": "If user want to book/schedule an event on calender"
+            },
+            {
+              "category": "Normal Query",
+              "description": "everything else (questions, greetings, info, chat)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5ab08974-2b3d-4689-ba79-f504026f818c",
+      "name": "Text Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        1440,
+        736
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful voice assistant.\n\nRules:\n- Respond naturally like spoken conversation\n- Keep answers short and clear\n- If user asks technical questions, explain simply\n- If unclear, ask a short follow-up question\n\nInput:\n{{ $('Wisper API').item.json.data }}\n",
+        "options": {}
+      },
+      "id": "103e4c85-d057-4711-a603-5e3f098c0286",
+      "name": "AI Agent1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1792,
+        1120
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "model": "phi3:mini",
+        "options": {}
+      },
+      "id": "d72ef7ae-9ea0-49ba-8606-b0a50ead7943",
+      "name": "Ollama Model",
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "position": [
+        1520,
+        992
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": "phi3:mini",
+        "options": {}
+      },
+      "id": "6236d1a5-0cd4-41df-be6e-dabf7fda66e7",
+      "name": "Ollama Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "position": [
+        1792,
+        1344
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "selective": true
+        },
+        "additionalFields": {
+          "reply_to_message_id": "={{ $('Telegram Trigger').item.json.message.message_id }}"
+        }
+      },
+      "id": "1a1fa4ce-f638-4021-ad9e-9ac7ca0f4b62",
+      "name": "Send a text message",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        2144,
+        1136
+      ],
+      "webhookId": "ed5f50de-9c7b-4675-8146-eb74d0f62870",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {},
+      "id": "b497d358-e7b5-472a-a268-77a445eb9fa1",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        2384,
+        1248
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "=📧 *Email Approval Required*\n\nPlease review the email below:\n\n━━━━━━━━━━━━━━━\n👤 *To:* {{ $json.to }}\n\n📝 *Subject:* {{ $json.subject }}\n\n📩 *Message:*\n{{ $json.body }}\n━━━━━━━━━━━━━━━\n\nDo you want to send this email?\n",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "disapproveLabel": "❌ Reprhrase Data"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "86109bbd-704b-4509-af6c-8445a35eb41c",
+      "name": "Send message and wait for response",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        2368,
+        320
+      ],
+      "webhookId": "73687904-8abe-4e83-821f-2dbe2d3325ed",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6f26c69f-80fe-4ab4-8fb3-bff39ffdeeb6",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.data.approved.toString() }}",
+              "rightValue": "=true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59358937-a259-4c55-9d70-06df26c31354",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        2592,
+        320
+      ],
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "db7d5580-30e1-4ab4-8723-e22269b0c99e",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        4048,
+        304
+      ],
+      "webhookId": "878b451f-5690-461d-9a9a-c3e2b00c4d3e",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=📨 Message sent successfully!\n\n━━━━━━━━━━━━━━━\n📌 Subject: {{ $('Code in JavaScript').item.json.subject }}\n📤 To: {{ $('Code in JavaScript').item.json.to }}\n\n💬 Body:\n{{ $('Code in JavaScript').item.json.body }}\n━━━━━━━━━━━━━━━",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "selective": true
+        },
+        "additionalFields": {
+          "reply_to_message_id": "={{ $('Telegram Trigger').item.json.message.message_id }}"
+        }
+      },
+      "id": "e68c8378-8cab-48ee-851a-bbad9fb578b4",
+      "name": "Send a text message1",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        4288,
+        304
+      ],
+      "webhookId": "ed5f50de-9c7b-4675-8146-eb74d0f62870",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {},
+      "id": "be3938b7-c9f8-4c3d-8bb0-a7bcc1ad5bb3",
+      "name": "No Operation, do nothing2",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        4496,
+        304
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.first().json.output;\n\n// remove markdown blocks if present\nraw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// parse safely\nconst parsed = JSON.parse(raw);\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "id": "31e21177-9110-4079-b1c2-bd5768ae9111",
+      "name": "Code in JavaScript1",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2144,
+        320
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw2 = $('AI Agent2').first().json.output;\n\n// remove markdown if present\nraw2 = raw2.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// parse safely\nconst parsed2 = JSON.parse(raw2);\n\nreturn [\n  {\n    json: parsed2\n  }\n];"
+      },
+      "id": "03955382-7801-464f-923c-57d001412b2e",
+      "name": "Code in JavaScript",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        3776,
+        304
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "model": "phi3:mini",
+        "options": {}
+      },
+      "id": "4582e41d-7d25-4060-90e5-e8ab047fb991",
+      "name": "Ollama Chat Model2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "position": [
+        2832,
+        624
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "=✨ Rephrased Email Ready\n\n━━━━━━━━━━━━━━━\n📤 To: {{ $json.to }}\n\n📌 Subject:\n{{ $json.subject }}\n\n💬 Body:\n{{ $json.body }}\n━━━━━━━━━━━━━━━",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "disapproveLabel": "❌ Cancel"
+          }
+        },
+        "options": {}
+      },
+      "id": "40f5ec75-b453-4d8e-a5dd-b90b85024b91",
+      "name": "Send message and wait for response1",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        3168,
+        464
+      ],
+      "webhookId": "73687904-8abe-4e83-821f-2dbe2d3325ed",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6f26c69f-80fe-4ab4-8fb3-bff39ffdeeb6",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.data.approved.toString() }}",
+              "rightValue": "=true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "12a14149-6e1c-4f00-bd8e-50ec24bd3b3d",
+      "name": "If1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        3504,
+        464
+      ],
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {},
+      "id": "3c35dbc0-516c-4f8e-a7b0-b8ac90b8b20c",
+      "name": "No Operation, do nothing3",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        3792,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1568,
+        "width": 4032,
+        "color": 3
+      },
+      "id": "e3e75d2a-58f2-40b6-80cd-c21a338d9adb",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        624,
+        144
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# Turn voice messages into structured emails and calendar events with AI-powered automation and human approval via Telegram.",
+        "width": 4032
+      },
+      "id": "f51bb286-0a24-475a-999b-882ee0afea42",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        624,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\n## 🧠 Overview\n\nThis workflow is an AI-powered personal productivity assistant that converts voice or text inputs from Telegram into structured actions such as **email generation** and **calendar event scheduling**, using local LLMs (Ollama), speech-to-text (Whisper), and human-in-the-loop approval.\n\nIt acts as a unified assistant for communication and scheduling, enabling users to manage emails and calendar events directly through natural language voice commands.\n\n---\n\n## ⚙️ Workflow Capabilities\n\nThe system supports two core automation modes:\n\n### 📧 Email Automation\n- Converts voice into structured professional emails\n- Extracts recipient, subject, and body\n  \n- Sends for human approval before dispatch\n- Sends final email via Gmail\n\n---\n\n### 📅 Calendar Automation\n- Converts user instructions into structured calendar events\n- Extracts title, date, time, duration, location, and description\n- Sends event details for approval via Telegram\n- Creates event after confirmation\n\n---\n\n## 🏗️ Workflow Architecture\n\n---\n\n## 🎤 1. Voice Input Capture (Telegram Trigger)\n\nUsers send voice messages or text instructions via Telegram.\n\n- Accepts natural language input\n- Supports both email and calendar requests\n- Acts as the entry point for the workflow\n\n---\n\n## 🎧 2. Speech-to-Text Processing (Whisper API)\n\nVoice messages are processed using Whisper ASR.\n\n- Converts audio → text\n- Ensures accurate transcription\n- Passes clean text to AI classification layer\n\n---\n\n## 🧠 3. Intent Classification Layer (AI Router)\n\nThe system classifies user intent into:\n\n- 📧 Email Request\n- 📅 Calendar Event Request\n- 💬 General Conversation\n\nThis enables dynamic routing of tasks.\n\n---\n\n## ✉️ 4. Email Generation Pipeline (AI Agent)\n\nIf intent = Email:\n\n- Extracts structured email fields:\n  - recipient\n  - subject\n  - body\n- Ensures professional tone and formatting\n- Outputs structured JSON\n\n",
+        "height": 1712,
+        "width": 624,
+        "color": 6
+      },
+      "id": "65b5996c-d92e-4eb0-b9bd-f60a7cb8fef3",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Converts speech-to-text using Whisper ASR model. Outputs structured transcription for downstream AI processing.",
+        "height": 432,
+        "width": 320
+      },
+      "id": "1f9efad6-fbeb-4e84-962c-dbdd315fcf24",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        528
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": "phi3:mini",
+        "options": {}
+      },
+      "id": "da149188-e772-44d7-b8d2-979fef4d6c15",
+      "name": "Ollama Chat Model3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "position": [
+        1792,
+        896
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $('AI Agent3').first().json.output;\n\n// 1. Remove markdown\nraw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// 2. Find ALL possible JSON-like blocks\nconst candidates = raw.match(/\\{[\\s\\S]*?\\}/g);\n\nif (!candidates || candidates.length === 0) {\n  return [{\n    json: {\n      error: \"No JSON candidates found\",\n      raw\n    }\n  }];\n}\n\n// 3. Try parsing from LAST to FIRST (IMPORTANT)\nfor (let i = candidates.length - 1; i >= 0; i--) {\n  try {\n    const parsed = JSON.parse(candidates[i]);\n    return [{ json: parsed }];\n  } catch (e) {\n    continue;\n  }\n}\n\n// 4. fallback\nreturn [{\n  json: {\n    error: \"No valid JSON could be parsed\",\n    raw\n  }\n}];"
+      },
+      "id": "21b5e98b-723e-4c42-aba3-7746f73e66fb",
+      "name": "Code in JavaScript3",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2144,
+        800
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Calendar Event Automation Assistant.\nINPUT: {{ $json.data }}\nReturn ONLY valid JSON.\n\nCRITICAL RULES:\n- Output must be ONLY JSON\n- NO markdown (no ``` )\n- NO explanations\n- NO comments (// or /* */ are not allowed)\n- NO extra text before or after JSON\n- MUST be valid JSON parseable by JSON.parse()\n\nOutput format:\n{\n  \"title\": \"\",\n  \"date\": \"\",\n  \"time\": \"\",\n  \"duration\": \"\",\n  \"location\": \"\",\n  \"description\": \"\"\n}",
+        "options": {}
+      },
+      "id": "23f8733a-896b-4342-9240-7fa447cd3c71",
+      "name": "AI Agent3",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1792,
+        672
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an email writing assistant.\n\nRewrite the email body to make it more natural, professional, and human-like.\n\nRules:\n- Keep the same meaning\n- Do not change the subject or recipient\n- Improve grammar and tone\n- Make it sound smooth and polite\n- Do NOT add extra information\n- Output ONLY JSON\n\nOutput ONLY JSON:\n{\n  \"to\": \"\",\n  \"subject\": \"\",\n  \"body\": \"\"\n}\nReturn ONLY valid JSON.\nNo markdown.\nNo explanation.\nNo comments.\nNo extra text.\nINPUT : {{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "id": "d4202f34-e35c-4091-a5b4-986b21871020",
+      "name": "AI Agent2",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2832,
+        416
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "=📅 Calendar Event Approval Required\n\nPlease review the event details below:\n\n━━━━━━━━━━━━━━━\n📌 Title: {{ $json.title }}\n\n📆 Date: {{ $json.date }}\n\n⏰ Time: {{ $json.time }}\n\n⏱️ Duration: {{ $json.duration }} minutes\n\n📍 Location: {{ $json.location }}\n\n📝 Description:\n{{ $json.description }}\n━━━━━━━━━━━━━━━\n\nDo you want to schedule this event in your calendar?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "05af91c6-a386-4a35-a70c-b4815923ca4e",
+      "name": "Send message and wait for response2",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        2336,
+        800
+      ],
+      "webhookId": "73687904-8abe-4e83-821f-2dbe2d3325ed",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6f26c69f-80fe-4ab4-8fb3-bff39ffdeeb6",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.data.approved.toString() }}",
+              "rightValue": "=true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e56236f2-e2d0-45d5-a76f-79dfa8f8c2dd",
+      "name": "If3",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        2576,
+        800
+      ],
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "additionalFields": {}
+      },
+      "id": "b706d304-a985-4a1f-9512-1bea6f5261c2",
+      "name": "Create an event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "position": [
+        3760,
+        784
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=📨 Event Booked successfully!\n\n💬 Body:\n{{ $('Code in JavaScript2').item.json.body }}\n━━━━━━━━━━━━━━━",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "selective": true
+        },
+        "additionalFields": {
+          "reply_to_message_id": "={{ $('Telegram Trigger').item.json.message.message_id }}"
+        }
+      },
+      "id": "cf0b02cc-d98b-4b33-9ad6-dade115e946a",
+      "name": "Send a text message2",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        4016,
+        784
+      ],
+      "webhookId": "ed5f50de-9c7b-4675-8146-eb74d0f62870",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {},
+      "id": "2723a9d2-a0d3-4973-bcf2-ab666de77c59",
+      "name": "No Operation, do nothing4",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        4288,
+        784
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "b3dbb18c-3272-4fe9-bdd0-1125a05e21d7",
+      "name": "No Operation, do nothing5",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        2880,
+        960
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Displays refined email to user for final confirmation before sending via Gmail.",
+        "height": 352
+      },
+      "id": "181735b3-c550-40a0-8fc2-96e1108b16d2",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2304,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Displays refined email to user for final confirmation before sending via Gmail.",
+        "height": 384,
+        "width": 352
+      },
+      "id": "0167e20d-c58d-477e-a9a3-2844f5c8e898",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3088,
+        352
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Displays refined Data to user for final confirmation before scheduling.",
+        "height": 336
+      },
+      "id": "eec71c19-9a68-4af5-a491-a22f33ebc14c",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2272,
+        640
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Handles general conversational queries when intent is not email-related. Provides short, natural voice-style responses.",
+        "height": 464,
+        "width": 1088
+      },
+      "id": "a758bf20-5ecf-4bae-92cd-97a363032405",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1744,
+        1024
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "##  🧪 Known Risk Areas\n\n- LLM may return invalid JSON → handled by Code nodes\n- Whisper transcription may include noise → affects classification\n- Calendar date formats must be ISO-compliant\n- Telegram approval timeout may block workflow execution\n\nUse execution logs for debugging failures.",
+        "height": 192,
+        "width": 512,
+        "color": 7
+      },
+      "id": "6d23fc15-3de1-4e47-8c87-e2651157808e",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4144,
+        1520
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Download audio files from Telegram",
+        "height": 352,
+        "width": 272,
+        "color": 7
+      },
+      "id": "532d34fe-f7e5-43c9-b2f0-0a956d7b60d1",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        576
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Classify audio based on extracted audio text",
+        "height": 352,
+        "width": 288,
+        "color": 7
+      },
+      "id": "301216c4-516e-4376-a654-1d636c5e3400",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1424,
+        576
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Extracts recipient, subject, and body",
+        "height": 288,
+        "width": 272,
+        "color": 7
+      },
+      "id": "5fd92d58-08c7-4205-8cf5-386d4b1c077e",
+      "name": "Sticky Note11",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1776,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Extracts title, date, time, duration, location, and description",
+        "height": 352,
+        "width": 320,
+        "color": 7
+      },
+      "id": "e02a00da-c22a-4d47-a323-9ee06749d345",
+      "name": "Sticky Note12",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1760,
+        560
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "##  Improves tone and grammar using LLM",
+        "height": 352,
+        "width": 288,
+        "color": 7
+      },
+      "id": "d4ebdc24-94df-44fb-bb51-a5b8bf5f99f2",
+      "name": "Sticky Note13",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2800,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Sends final email via Gmail",
+        "height": 352,
+        "width": 208,
+        "color": 7
+      },
+      "id": "1e49940e-9f1a-4058-9bc8-cd9b76920651",
+      "name": "Sticky Note14",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4000,
+        176
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Creates event after confirmation\n",
+        "height": 352,
+        "width": 272,
+        "color": 7
+      },
+      "id": "d4689a2e-2195-4400-9401-7d3bf1c7fc28",
+      "name": "Sticky Note15",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3664,
+        688
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## checking approved or rejected",
+        "height": 272,
+        "color": 4
+      },
+      "id": "6f7f8e57-0f02-48eb-8396-1217f955385c",
+      "name": "Sticky Note16",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3456,
+        384
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## checking approved or rejected",
+        "height": 272,
+        "color": 4
+      },
+      "id": "f5f73f44-8c07-4c75-9cac-30bf29f43ceb",
+      "name": "Sticky Note17",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2560,
+        224
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## checking approved or rejected",
+        "height": 272,
+        "color": 4
+      },
+      "id": "47e79163-2f6e-48b3-ae94-9dc0918434c9",
+      "name": "Sticky Note18",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2544,
+        704
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Success message",
+        "height": 272,
+        "color": 4
+      },
+      "id": "3fe9e6c8-7f6d-4c01-9532-486e4d64708d",
+      "name": "Sticky Note19",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4224,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Success message",
+        "height": 272,
+        "color": 4
+      },
+      "id": "f7ad8bd8-ccd6-4c19-94e2-b694560fe969",
+      "name": "Sticky Note20",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3952,
+        704
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## JSON Parser",
+        "height": 208,
+        "width": 192,
+        "color": 6
+      },
+      "id": "173016ec-3fa5-46bd-a82b-82bb5d622e4a",
+      "name": "Sticky Note21",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2096,
+        272
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## JSON Parser",
+        "height": 208,
+        "width": 192,
+        "color": 6
+      },
+      "id": "3e85e727-88fc-485d-bf77-c722f11e98db",
+      "name": "Sticky Note22",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2080,
+        736
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## JSON Parser",
+        "height": 208,
+        "width": 192,
+        "color": 6
+      },
+      "id": "6448e82e-31db-43f1-b6e8-360dd840f014",
+      "name": "Sticky Note23",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3744,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "https://n8n.io/workflows/15754-turn-telegram-voice-messages-into-gmail-emails-and-google-calendar-events-with-whisper-and-ollama/\n\n\nhttps://www.youtube.com/watch?v=-BpN4OZZDwE",
+        "height": 128,
+        "width": 1152
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1968,
+        -352
+      ],
+      "typeVersion": 1,
+      "id": "2a184779-4ddf-4dea-8ac0-810a0a92cd2a",
+      "name": "Sticky Note24"
+    }
+  ],
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Wisper API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wisper API": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response2": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-07-22T06:31:49.395+00:00",
+  "updatedAt": "2026-07-22T07:09:43.514+00:00",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "0a6999b9-6f6e-4517-bd2f-f4b9e3239838",
+  "triggerCount": 0,
+  "id": "7zMAASY4cZDn2q8L",
+  "meta": null,
+  "parentFolderId": null,
+  "isArchived": false,
+  "versionCounter": 5,
+  "description": null,
+  "activeVersionId": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null
+}

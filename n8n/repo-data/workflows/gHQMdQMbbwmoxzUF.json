@@ -1,5 +1,5 @@
 {
-  "name": "Building RAG Chatbot for Movie Recommendations with Qdrant and Open AI",
+  "name": "n8n - Building RAG Chatbot for Movie Recommendations with Qdrant and Open AI",
   "active": false,
   "nodes": [
     {
@@ -826,13 +826,14 @@
     }
   },
   "createdAt": "2025-09-14T06:18:33.197+00:00",
-  "updatedAt": "2025-09-14T17:32:05.627+00:00",
+  "updatedAt": "2026-07-22T05:22:12.074+00:00",
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "4067e346-aab3-41b0-868d-7d1d7f3cfb6c",
+  "versionId": "27613803-6550-48b0-9eb6-dbacd5b23cd8",
   "triggerCount": 0,
   "id": "gHQMdQMbbwmoxzUF",
   "meta": {
@@ -841,7 +842,7 @@
   },
   "parentFolderId": null,
   "isArchived": false,
-  "versionCounter": 1,
+  "versionCounter": 2,
   "description": null,
   "activeVersionId": null,
   "nodeGroups": [],

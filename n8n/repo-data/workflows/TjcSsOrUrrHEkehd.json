@@ -1,5 +1,5 @@
 {
-  "name": "n8n - temp",
+  "name": "n8n - Building RAG chatbot for movie recommendations with Qdrant and Open AI",
   "active": false,
   "nodes": [
     {
@@ -843,14 +843,14 @@
     }
   },
   "createdAt": "2025-09-24T04:50:16.018+00:00",
-  "updatedAt": "2026-07-22T05:15:07.608+00:00",
+  "updatedAt": "2026-07-22T05:32:21.571+00:00",
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "87f009e1-3879-4f46-9405-bbdc4aea7748",
+  "versionId": "3c8d9926-3ae9-46ae-b83e-2d84855c0167",
   "triggerCount": 0,
   "id": "TjcSsOrUrrHEkehd",
   "meta": {

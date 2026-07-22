@@ -3,37 +3,6 @@
   "active": false,
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "c74587f1-5fbe-41c7-bfec-dbf973638a77",
-      "name": "When clicking ‘Execute workflow’"
-    },
-    {
-      "parameters": {
-        "resource": "chat"
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        208,
-        0
-      ],
-      "id": "53fad26b-6b74-4d7c-9f65-c7588316baa0",
-      "name": "Get a chat",
-      "webhookId": "776d253b-2b20-4d3f-ac90-cf6c600d3ff5",
-      "credentials": {
-        "telegramApi": {
-          "id": "MZ5Qk36n9phVdYuv",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
       "parameters": {
         "updates": [
           "message"
@@ -43,30 +12,32 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.4,
       "position": [
-        96,
-        464
+        48,
+        688
       ],
       "id": "0500a6d5-2402-402f-a275-9a5c61e25195",
       "name": "Telegram Trigger",
       "webhookId": "e566520b-d88f-4b4c-adb8-ea18e3b6fe38",
       "credentials": {
         "telegramApi": {
-          "id": "MZ5Qk36n9phVdYuv",
+          "id": "9mRhbKzH564U5iG1",
           "name": "Telegram account"
         }
       }
     },
     {
       "parameters": {
+        "promptType": "define",
+        "text": "=",
         "options": {
-          "systemMessage": "Eres un asistente de soporte TI.\n\nUsa la tool de Google Sheet para revisar el estado del ticket. "
+          "systemMessage": "=Eres un asistente de soporte TI.\n\nUsa un tono amable para responder.\n\nUsa el siguiente contexto para poder responder:\n- caso: {{ $('Get row(s) in sheet').item.json.caso }}\n- situacion: {{ $('Get row(s) in sheet').item.json.situacion }}"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        560,
-        224
+        1728,
+        656
       ],
       "id": "a7b64ddc-bdcb-440f-81bc-b2c4a91b99e4",
       "name": "AI Agent"
@@ -79,8 +50,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        464,
-        480
+        1728,
+        912
       ],
       "id": "c60fa271-df7d-4ae0-bc80-00c8fef6d9f2",
       "name": "Ollama Chat Model",
@@ -92,15 +63,181 @@
       }
     },
     {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.4,
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "¿Cuentas con un numero de ticket?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "✅ Sí",
+            "disapproveLabel": "❌ No"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
-        656,
-        480
+        368,
+        688
       ],
-      "id": "2761257b-269e-4109-b1e3-e64bfe1df435",
-      "name": "Simple Memory"
+      "id": "f2646706-ba41-46f8-9dd9-d78fc666def9",
+      "name": "Send message and wait for response",
+      "webhookId": "5e5b0df1-466f-4274-a530-16835180175a",
+      "credentials": {
+        "telegramApi": {
+          "id": "9mRhbKzH564U5iG1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "195134b7-9eb9-47b1-af47-840afb669b14",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        688
+      ],
+      "id": "020e90d6-8b4e-481a-af3e-b6e3bd7d3bde",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "¿Cual es tu numero de ticket?",
+        "responseType": "freeText",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        672
+      ],
+      "id": "3907956a-4aee-450b-bb86-20eb20dcd448",
+      "name": "Send message and wait for response1",
+      "webhookId": "b85bbd83-6db8-4349-bf89-46e7eb19dff5",
+      "credentials": {
+        "telegramApi": {
+          "id": "9mRhbKzH564U5iG1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA",
+          "mode": "list",
+          "cachedResultName": "soporteTI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ticket": "12345"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ticket",
+              "displayName": "ticket",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "caso",
+              "displayName": "caso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "situacion",
+              "displayName": "situacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        944,
+        944
+      ],
+      "id": "7aafbfbd-a4ba-4300-8ab6-0d8352de4bdb",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kj306y1Z5y6pfsNR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "https://www.youtube.com/watch?v=-BpN4OZZDwE",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        512
+      ],
+      "typeVersion": 1,
+      "id": "cdc0a8ab-88e3-45ae-8776-43feb5760e11",
+      "name": "Sticky Note"
     },
     {
       "parameters": {
@@ -118,16 +255,25 @@
           "cachedResultName": "Hoja 1",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukin96PK5JqAEJwrJwsivxKSJ9P829sVve8hMNf_GdA/edit#gid=0"
         },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ticket",
+              "lookupValue": "={{ $json.data.text }}"
+            }
+          ]
+        },
         "options": {}
       },
-      "type": "n8n-nodes-base.googleSheetsTool",
+      "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        848,
-        480
+        1232,
+        672
       ],
-      "id": "837d5927-5674-4f22-8eb1-838ad541fa92",
-      "name": "Get row(s) in sheet in Google Sheets",
+      "id": "6dd23361-b5a9-452a-9a69-b6d1ca50648d",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "kj306y1Z5y6pfsNR",
@@ -137,39 +283,116 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f7f579fa-c96c-4166-ac16-0b95eeb0ff36",
+              "leftValue": "={{ $json.ticket }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1472,
+        672
+      ],
+      "id": "d52e8476-bd40-49f7-8ef0-d473b41c9f80",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "content": "si se entrego un numero incorrecto, repite el flujo",
+        "height": 96,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1424,
+        832
+      ],
+      "typeVersion": 1,
+      "id": "fb08df46-24b4-4463-b1d1-b43f7b631d80",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2080,
+        656
+      ],
+      "id": "54af7314-52b7-45f8-931f-3aa37fb67143",
+      "name": "Send a text message",
+      "webhookId": "9d7fd821-caa9-4989-9131-6df6cd521c63",
+      "credentials": {
+        "telegramApi": {
+          "id": "9mRhbKzH564U5iG1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
       "position": [
-        224,
-        240
+        1888,
+        912
       ],
-      "id": "995a86b7-df05-43cf-a896-fdd8dc47c6c6",
-      "name": "When chat message received",
-      "webhookId": "16e980bf-7b03-4513-a0d6-385eaf5c712b"
+      "id": "d56aca32-2fca-45a0-b67a-07b363fb9be5",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "hasta aqui todo bien. Podriamos pensar en que el agente pregunte por mas contexto y cuando se llega a un numero de lineas se detenga.",
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1728,
+        416
+      ],
+      "typeVersion": 1,
+      "id": "194a6c8b-fcec-46ce-ab19-713c0bc5ef77",
+      "name": "Sticky Note2"
     }
   ],
   "connections": {
-    "When clicking ‘Execute workflow’": {
+    "Telegram Trigger": {
       "main": [
         [
           {
-            "node": "Get a chat",
+            "node": "Send message and wait for response",
             "type": "main",
             "index": 0
           }
         ]
-      ]
-    },
-    "Get a chat": {
-      "main": [
-        []
-      ]
-    },
-    "Telegram Trigger": {
-      "main": [
-        []
       ]
     },
     "Ollama Chat Model": {
@@ -178,6 +401,86 @@
           {
             "node": "AI Agent",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
             "index": 0
           }
         ]
@@ -193,32 +496,10 @@
           }
         ]
       ]
-    },
-    "Get row(s) in sheet in Google Sheets": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When chat message received": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "createdAt": "2026-07-22T13:06:30.756+00:00",
-  "updatedAt": "2026-07-22T14:58:31.971+00:00",
+  "updatedAt": "2026-07-22T21:20:57.882+00:00",
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
@@ -226,7 +507,7 @@
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "c41a2401-7c22-468b-ad8c-ef9b0f9354ae",
+  "versionId": "08e616e0-ec68-43a7-9220-eff39e0e64e1",
   "triggerCount": 0,
   "id": "liPOwdTkSzdq5rqq",
   "meta": {
@@ -234,7 +515,7 @@
   },
   "parentFolderId": null,
   "isArchived": false,
-  "versionCounter": 31,
+  "versionCounter": 230,
   "description": null,
   "activeVersionId": null,
   "nodeGroups": [],

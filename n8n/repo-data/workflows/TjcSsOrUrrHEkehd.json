@@ -1,5 +1,5 @@
 {
-  "name": "temp",
+  "name": "n8n - temp",
   "active": false,
   "nodes": [
     {
@@ -843,13 +843,14 @@
     }
   },
   "createdAt": "2025-09-24T04:50:16.018+00:00",
-  "updatedAt": "2025-10-01T14:49:51.844+00:00",
+  "updatedAt": "2026-07-22T05:15:07.608+00:00",
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "5471736a-f632-4986-a989-8a775b544545",
+  "versionId": "87f009e1-3879-4f46-9405-bbdc4aea7748",
   "triggerCount": 0,
   "id": "TjcSsOrUrrHEkehd",
   "meta": {
@@ -858,7 +859,7 @@
   },
   "parentFolderId": null,
   "isArchived": false,
-  "versionCounter": 1,
+  "versionCounter": 2,
   "description": null,
   "activeVersionId": null,
   "nodeGroups": [],

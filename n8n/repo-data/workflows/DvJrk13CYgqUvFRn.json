@@ -1,5 +1,5 @@
 {
-  "name": "RAG Starter Template using Simple Vector Stores, Form trigger and OpenAI",
+  "name": "n - RAG Starter Template using Simple Vector Stores, Form trigger and OpenAI",
   "active": false,
   "nodes": [
     {
@@ -297,13 +297,14 @@
     }
   },
   "createdAt": "2025-09-14T05:34:42.088+00:00",
-  "updatedAt": "2025-09-17T17:49:35.563+00:00",
+  "updatedAt": "2026-07-22T05:14:29.452+00:00",
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "c64382c6-6219-4cd8-9e33-ed7312ce89b1",
+  "versionId": "2301c4ea-df7e-49d7-9c32-ac726188df96",
   "triggerCount": 0,
   "id": "DvJrk13CYgqUvFRn",
   "meta": {
@@ -312,7 +313,7 @@
   },
   "parentFolderId": null,
   "isArchived": false,
-  "versionCounter": 1,
+  "versionCounter": 2,
   "description": null,
   "activeVersionId": null,
   "nodeGroups": [],

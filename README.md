@@ -19,7 +19,7 @@ This is a powered version of the `n8n-starter-kit` that includes:
 - start the project with compose
 
 ```sh
-docker compose --profile gpu-nvidia up --build
+docker compose up --build
 ```
 
 - create a reverse proxy using ngrok. This is necesasary when using Telegram because Telegram needs to know how to reach our local n8n service. [More info](https://ngrok.com/docs/guides/share-localhost/quickstart)

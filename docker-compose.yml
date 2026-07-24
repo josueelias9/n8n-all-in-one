@@ -4,14 +4,10 @@ volumes:
   ollama_storage:
   qdrant_storage:
   pgadmin_storage:
-
-
-networks:
-  demo:
+  whisper-cache:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
-  networks: ['demo']
   environment:
     - DB_TYPE=postgresdb
     - DB_POSTGRESDB_HOST=postgres
@@ -29,7 +25,6 @@ x-n8n: &service-n8n
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
-  networks: ['demo']
   restart: unless-stopped
   ports:
     - 11434:11434
@@ -38,7 +33,6 @@ x-ollama: &service-ollama
 
 x-init-ollama: &init-ollama
   image: ollama/ollama:latest
-  networks: ['demo']
   volumes:
     - ollama_storage:/root/.ollama
   entrypoint: /bin/sh
@@ -46,14 +40,13 @@ x-init-ollama: &init-ollama
     - OLLAMA_HOST
   command:
     - "-c"
-    - "sleep 3; ollama pull ${LLM_MODEL} && ollama pull ${EMBEDDING_MODEL}"
+    - "sleep 3; ollama pull ${LLM_MODEL} && ollama pull ${EMBEDDING_MODEL} && ollama pull phi3:mini"
 
 services:
   postgres:
     container_name: postgres-container
     image: postgres:16-alpine
     hostname: postgres
-    networks: ['demo']
     restart: unless-stopped
     environment:
       - POSTGRES_USER
@@ -110,18 +103,14 @@ services:
     image: qdrant/qdrant
     hostname: qdrant
     container_name: qdrant-container
-    networks: ['demo']
     restart: unless-stopped
     ports:
       - 6333:6333
     volumes:
       - qdrant_storage:/qdrant/storage
 
-
-
   ollama-gpu:
     container_name: ollama-gpu-container
-    profiles: ["gpu-nvidia"]
     <<: *service-ollama
     deploy:
       resources:
@@ -131,21 +120,16 @@ services:
               count: 1
               capabilities: [gpu]
 
-
-
-
   ollama-pull-llama-gpu:
     container_name: ollama-pull-llama-gpu-container
-    profiles: ["gpu-nvidia"]
     <<: *init-ollama
     depends_on:
       - ollama-gpu
 
-
+# ======================
 
   pgadmin4:
     image: dpage/pgadmin4
-    networks: ['demo']
     # restart: always
     ports:
       - 80:80
@@ -156,15 +140,12 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL
       - PGADMIN_DEFAULT_PASSWORD
-    profiles:
-      - profileName
+    profiles: [manual]
 
   extract-workflow:
     build: ./extract-workflow
     container_name: extract-workflow-container
-    networks: ['demo']
-    profiles:
-      - profileName
+    profiles: [manual]
     env_file: .env
     volumes:
       - .:/workspace
@@ -173,6 +154,26 @@ services:
       postgres:
         condition: service_healthy
 
+  whisper-api:
+    image: onerahmet/openai-whisper-asr-webservice:latest-gpu
+    container_name: whisper-api-container
+    ports:
+      - "9000:9000"
+    environment:
+      ASR_ENGINE: faster_whisper
+      ASR_MODEL: small
+      ASR_DEVICE: cuda
+    volumes:
+      - whisper-cache:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+    restart: unless-stopped
 
   # neo4j:
   #   image: neo4j:latest
